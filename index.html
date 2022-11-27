@@ -17,82 +17,144 @@
 
 	<body>
 		<div id="app">
-			<el-container class="terminal-wrapper">
-				<el-main>
-					<el-row class="serial-tx" :gutter="16" type="flex" :align="'middle'">
-						<el-col :span="4" class="status">
-							<span class="text-status" :class="isConnected && 'text-success' || 'text-danger'"
-								>{{isConnected ? 'CONNECTED' : 'DISCONNECTED'}}</span
-							>
-						</el-col>
-						<el-col :span="16">
-							<el-input placeholder="TX" v-model="txData" :disabled="!isConnected"></el-input>
-						</el-col>
-						<el-col :span="4">
-							<el-button class="w-100" :disabled="!isConnected">SEND</el-button>
-						</el-col>
-					</el-row>
-					<el-row class="serial-rx mt-2">
-						<el-col :span="24">
-							<el-input
-								type="textarea"
-								:autosize="{ minRows: 18, maxRows: 18}"
-								placeholder=""
-								v-model="rawOutputData"
-								readonly
-								ref="output-panel"
-								id="output-panel"
-							>
-							</el-input>
-						</el-col>
-					</el-row>
-					<el-row class="serial-options mt-2" type="flex">
-						<el-col :span="12">
-							<el-checkbox v-model="isAutoScroll">Autoscroll</el-checkbox>
-							<el-checkbox v-model="isShowTimestamp"> Show Timestamp </el-checkbox>
-							<el-button @click="clearOutput" class="ml-2" size="small">Clear output</el-button>
-						</el-col>
-						<el-col :span="9" :offset="3">
-							<el-row type="flex" :justify="'space-between'">
-								<el-select v-model="newLineSelected" placeholder="NL" class="newline-ending">
-									<el-option
-										v-for="item in newLineOptions"
-										:key="item.value"
-										:label="item.label"
-										:value="item.value"
+			<el-row class="mt-8">
+				<el-col :span="16" :offset="4">
+					<el-tabs type="border-card" class="main">
+						<el-tab-pane label="Terminal View">
+							<el-row class="header">
+								<el-col :span="4">
+									<p class="text-center">Location</p>
+								</el-col>
+								<el-col :span="6">
+									<p class="text-center">Temperature (℃)</p>
+								</el-col>
+								<el-col :span="14">
+									<p class="text-center">Timeline</p>
+								</el-col>
+							</el-row>
+							<el-row>
+								<el-col :span="10">
+									<el-row
+										class="row mt-5"
+										v-for="(item, index) in currentRecordData.data"
+										:key="item.id"
 									>
-									</el-option>
-								</el-select>
-								<el-select
-									v-model="baudrate"
-									placeholder="Baudrate"
-									class="baudrate"
-									:disabled="isConnected"
-								>
-									<el-option
-										v-for="baudrate in baudrateOptions"
-										:key="baudrate"
-										:label="baudrate"
-										:value="baudrate"
-									>
-									</el-option>
-								</el-select>
+										<el-col :span="10">
+											<h3 class="text-center text-danger">{{item.label}}</h3>
+										</el-col>
+										<el-col :span="14">
+											<h3>{{item.value}}</h3>
+										</el-col>
+									</el-row>
+								</el-col>
+								<el-col :span="14">
+									<div class="chart">
+										<canvas id="myChart"></canvas>
+									</div>
+								</el-col>
+							</el-row>
+							<el-row class="mt-2 footer">
+								<el-button>Export</el-button>
 								<el-button
 									@click="handleConnect"
 									class="btn-connect"
 									:type="isConnected ? 'danger' : 'success'"
 									>{{isConnected ? 'Disconnect' : 'Connect'}}</el-button
-								></el-row
-							>
-						</el-col>
-					</el-row>
-				</el-main>
-			</el-container>
+								>
+							</el-row>
+						</el-tab-pane>
+						<el-tab-pane label="Config">
+							<el-container class="terminal-wrapper">
+								<el-main>
+									<el-row class="serial-tx" :gutter="16" type="flex" :align="'middle'">
+										<el-col :span="4" class="status">
+											<span
+												class="text-status"
+												:class="isConnected && 'text-success' || 'text-danger'"
+												>{{isConnected ? 'CONNECTED' : 'DISCONNECTED'}}</span
+											>
+										</el-col>
+										<el-col :span="16">
+											<el-input placeholder="TX" v-model="txData" :disabled="true"></el-input>
+										</el-col>
+										<el-col :span="4">
+											<el-button class="w-100" :disabled="true">SEND</el-button>
+										</el-col>
+									</el-row>
+									<el-row class="serial-rx mt-2">
+										<el-col :span="24">
+											<el-input
+												type="textarea"
+												:autosize="{ minRows: 18, maxRows: 18}"
+												placeholder=""
+												v-model="rawOutputData"
+												readonly
+												ref="output-panel"
+												id="output-panel"
+											>
+											</el-input>
+										</el-col>
+									</el-row>
+									<el-row class="serial-options mt-2" type="flex">
+										<el-col :span="12">
+											<el-checkbox v-model="isAutoScroll">Autoscroll</el-checkbox>
+											<el-checkbox v-model="isShowTimestamp"> Show Timestamp </el-checkbox>
+											<el-button @click="clearOutput" class="ml-2" size="small"
+												>Clear output</el-button
+											>
+										</el-col>
+										<el-col :span="9" :offset="3">
+											<el-row type="flex" :justify="'space-between'">
+												<el-select
+													v-model="newLineSelected"
+													placeholder="NL"
+													class="newline-ending"
+												>
+													<el-option
+														v-for="item in newLineOptions"
+														:key="item.value"
+														:label="item.label"
+														:value="item.value"
+													>
+													</el-option>
+												</el-select>
+												<el-select
+													v-model="baudrate"
+													placeholder="Baudrate"
+													class="baudrate"
+													:disabled="isConnected"
+												>
+													<el-option
+														v-for="baudrate in baudrateOptions"
+														:key="baudrate"
+														:label="baudrate"
+														:value="baudrate"
+													>
+													</el-option>
+												</el-select>
+												<el-button
+													@click="handleConnect"
+													class="btn-connect"
+													:type="isConnected ? 'danger' : 'success'"
+													>{{isConnected ? 'Disconnect' : 'Connect'}}</el-button
+												></el-row
+											>
+										</el-col>
+									</el-row>
+								</el-main>
+							</el-container>
+						</el-tab-pane>
+					</el-tabs>
+				</el-col>
+			</el-row>
 		</div>
 	</body>
+	<!-- import chatjs -->
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<!-- import Vue before Element -->
 	<script src="./js/vue.min.js"></script>
 	<!-- import JavaScript -->
 	<script src="https://unpkg.com/element-ui/lib/index.js"></script>
-	<script src="./js/main.js"></script>
+	<script src="./js/app.min.js"></script>
+	<!-- <script src="./js/main.js"></script> -->
 </html>

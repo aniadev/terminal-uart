@@ -43,3 +43,18 @@
 .btn-connect {
     width: 120px;
 }
+
+.row p,.row h3{
+    text-align: center;
+    color: #e74c3c;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.chart {
+    width: 100%;
+    height: 100%;
+}
