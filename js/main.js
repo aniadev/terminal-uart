@@ -100,6 +100,7 @@ new Vue({
 					borderColor: '#7f8c8d',
 				},
 			],
+			excelData: ''
 		}
 	},
 	methods: {
@@ -112,6 +113,7 @@ new Vue({
 		},
 		clearOutput() {
 			this.rawOutputData = ''
+			this.excelData = ''
 		},
 		async connectSerial() {
 			try {
@@ -180,6 +182,7 @@ new Vue({
 			}
 			this.mapRecordData()
 			this.mapChartData()
+			this.mapExcelData()
 		},
 		scrollToBottom() {
 			this.outputPanel.scrollTop = this.outputPanel.scrollHeight
@@ -206,6 +209,32 @@ new Vue({
 				dataset.data.push(arrData[index] || null);
 			});
 			this.chart.update();
+		},
+		mapExcelData() {
+			const tmp = this.rxData.trimEnd() + ',' + new Date().toLocaleTimeString('vi-VN') + ',' + new Date().toLocaleDateString('vi-VN') + '\r\n'
+			this.excelData += tmp;
+		},
+		handleExportData() {
+			console.log(this.excelData)
+			const filename = 'terminal-' + Date.now().toLocaleString('vi-VN') + '.csv'
+			this.download(this.excelData, filename, 'csv')
+		},
+		download(data, filename, type) {
+			var file = new Blob([data], {type: type});
+			if (window.navigator.msSaveOrOpenBlob) // IE10+
+				window.navigator.msSaveOrOpenBlob(file, filename);
+			else { // Others
+				var a = document.createElement("a"),
+						url = URL.createObjectURL(file);
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				setTimeout(function() {
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);  
+				}, 0); 
+			}
 		}
 		
 	},
